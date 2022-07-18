@@ -1,5 +1,5 @@
 //
-//  FirstViewController.swift
+//  DocViewController.swift
 //  Documents
 //
 //  Created by Vadim on 13.07.2022.
@@ -7,12 +7,12 @@
 
 import UIKit
 
-class FirstViewController: UIViewController {
+class DocViewController: UIViewController {
     
     var manager = FileManagerService()
     
     private var jpegFiles: [Document] = []
-    var identifier = String(describing: FirstTableViewCell.self)
+    var identifier = String(describing: DocTableViewCell.self)
 
     private lazy var tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .plain)
@@ -24,10 +24,15 @@ class FirstViewController: UIViewController {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.register(FirstTableViewCell.self, forCellReuseIdentifier: identifier)
+        tableView.register(DocTableViewCell.self, forCellReuseIdentifier: identifier)
         configNavBar()
         setupTableView()
         getFiles()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        sorted()
     }
 
     private func setupTableView() {
@@ -43,7 +48,6 @@ class FirstViewController: UIViewController {
     }
 
     private func configNavBar() {
-        title = "Documents"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
                                                             target: self,
                                                             action: #selector(showImagePicker))
@@ -61,29 +65,42 @@ class FirstViewController: UIViewController {
                 print(error.localizedDescription)
             }
             let image = UIImage(contentsOfFile: file.path)
-            let date = atributes[.creationDate]
+            let name = (file.path as NSString).lastPathComponent.split(separator: "-")[0]
+            let size = atributes[.size] ?? 0
+            let mb = Float(String(describing: size))! / 1000000
+            let formatSize = String(format: "Size: %.2f Mb", mb)
 
             jpegFiles.append(Document(image: image ?? UIImage(),
-                                      date: String(describing: date),
+                                      name: "\(name).jpg",
+                                      size: formatSize,
                                       path: file.path))
         }
     }
+    
+    private func sorted() {
+        if UserDefaults.standard.bool(forKey: "sorted") {
+            jpegFiles.sort(by: {$0.name > $1.name })
+        } else {
+            jpegFiles.sort(by: {$0.name < $1.name })
+        }
+        tableView.reloadData()
+    }
 }
 
-extension FirstViewController: UITableViewDataSource {
+extension DocViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return jpegFiles.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath) as? FirstTableViewCell else { return UITableViewCell()}
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath) as? DocTableViewCell else { return UITableViewCell()}
         cell.configCell(jpegFiles[indexPath.row])
         return cell
     }
 }
 
-extension FirstViewController: UITableViewDelegate {
+extension DocViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         let file = jpegFiles[indexPath.row].path
@@ -104,7 +121,7 @@ extension FirstViewController: UITableViewDelegate {
     }
 }
 
-extension FirstViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+extension DocViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     @objc private func showImagePicker() {
         let imagePicker = UIImagePickerController()

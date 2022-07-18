@@ -1,5 +1,5 @@
 //
-//  FirstTableViewCell.swift
+//  DocumentsTableViewCell.swift
 //  Documents
 //
 //  Created by Vadim on 13.07.2022.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-class FirstTableViewCell: UITableViewCell {
+class DocTableViewCell: UITableViewCell {
 
     private lazy var image: UIImageView = {
         let image = UIImageView()
@@ -16,23 +16,30 @@ class FirstTableViewCell: UITableViewCell {
         return image
     }()
 
-    private lazy var dateCreated: UILabel = {
+    private lazy var nameFiles: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .semibold)
+        label.numberOfLines = 0
+        return label
+    }()
+
+    private lazy var size: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12, weight: .light)
         return label
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupViewElements()
+        setupConstraints()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setupViewElements() {
-        contentView.addSubviews(image, dateCreated)
+    private func setupConstraints() {
+        contentView.addSubviews(image, nameFiles, size)
 
         NSLayoutConstraint.activate([
             image.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -40,15 +47,20 @@ class FirstTableViewCell: UITableViewCell {
             image.widthAnchor.constraint(equalToConstant: 100),
             image.heightAnchor.constraint(equalTo: image.widthAnchor),
 
-            dateCreated.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            dateCreated.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 10),
-            dateCreated.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+            nameFiles.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            nameFiles.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 10),
+            nameFiles.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+
+            size.topAnchor.constraint(equalTo: nameFiles.bottomAnchor, constant: 10),
+            size.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 10),
+            size.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
     }
 
     func configCell(_ file: Document) {
         image.image = file.image
-        dateCreated.text = Date.formatedDate(file.date)
+        nameFiles.text = file.name
+        size.text = file.size
     }
 
     override func awakeFromNib() {
